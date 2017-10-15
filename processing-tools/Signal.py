@@ -1,20 +1,25 @@
 import numpy as np
 from scipy import signal as scipySignal
 import python_speech_features
-
-SAMPLE_FREQ_CONST = 15000
+from Timer import Timer
+SAMPLE_FREQ_CONST = 16000
+timer = Timer(["resample", "feat"])
 
 class Signal:
     def __init__(self, np_array_of_values, sample_freq, ms_per_frame=25):
         is_np_array = isinstance(np_array_of_values, np.ndarray)
         assert(is_np_array and sample_freq > 0 and isinstance(sample_freq, int))
         self.signal = resample(np_array_of_values, initial_freq=sample_freq, new_freq=SAMPLE_FREQ_CONST)
+        timer.storeTime("resample")
         self.sample_freq = SAMPLE_FREQ_CONST
         samples_per_ms = sample_freq / 1000
         self.samples_per_frame = np.int(np.floor(samples_per_ms * ms_per_frame))
         self.n_of_frames = np.int(np.ceil(len(self.signal) / self.samples_per_frame))
-        self.framed_signal = self.splitInFrames()
+        #self.framed_signal = self.splitInFrames()
         self.feature_vectors = signalToFeatureVector(self.signal, SAMPLE_FREQ_CONST, ms_per_frame)
+        timer.storeTime("feat")
+        timer.showResults()
+
 
     def splitInFrames(self):
         n_zeros_to_add = (self.samples_per_frame - len(self.signal) % self.samples_per_frame) % self.samples_per_frame
@@ -34,6 +39,11 @@ def signalToFeatureVector(signal, sample_rate, ms_per_frame):
 def resample(signal, initial_freq, new_freq):
     if (initial_freq == new_freq):
         return signal
+    n = signal.shape[0]
+    prevExp = np.floor(np.log2(n))
+    nextpow2  = np.int(np.power(2, prevExp + 1))
+    signal  = np.pad(signal, ((0, nextpow2-n)), mode='constant')
+
     new_num_of_samples = np.int(np.ceil(len(signal) / initial_freq * new_freq))
     return scipySignal.resample(signal, new_num_of_samples)
 
@@ -55,7 +65,7 @@ def testResample():
     resample4 = resample(signal4, 10000, 2001)
     assert(len(resample4) == 3)
 
-testResample()
+#testResample()
 
 def testSplitInFrame():
     def testWithNewSignal(duration):
