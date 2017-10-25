@@ -12,8 +12,10 @@ class DNNVoiceClassifier():
         self.token = token
         self.datasets = datasets
         if (createNew):
+            print("Creating new model for {}".format(token))
             self.createModel()
         else:
+            print("Importing model for {}".format(token))
             self.importModel()
 
     def importModel(self):
@@ -37,7 +39,10 @@ class DNNVoiceClassifier():
           epochs=n_iteration,
           batch_size=batch_size, verbose=0)
         score = self.model.evaluate(self.datasets["test"]["frames"], self.datasets["test"]["is_voice"], batch_size=128)
-        self.scores.append(score[1])
+        self.scores.append(np.around(score[1], 5))
+
+    def predict(self, feature_vect):
+        return self.model.predict(feature_vect)
 
 def Model1():
     model = Sequential()
@@ -118,43 +123,45 @@ def createModelOnCorpus():
     corpus = importAllCorpus()
     datasets = corpusToDatasets(corpus)
 
-    VAD1 = DNNVoiceClassifier("model1", datasets=datasets, createNew=True)
-    VAD2 = DNNVoiceClassifier("model2", datasets=datasets, createNew=True)
-    VAD3 = DNNVoiceClassifier("model3", datasets=datasets, createNew=True)
-    VAD4 = DNNVoiceClassifier("model4", datasets=datasets, createNew=True)
+    # VAD1 = DNNVoiceClassifier("model1", datasets=datasets, createNew=True)
+    # VAD2 = DNNVoiceClassifier("model2", datasets=datasets, createNew=True)
+    VAD3 = DNNVoiceClassifier("model3", datasets=datasets)
+    # VAD4 = DNNVoiceClassifier("model4", datasets=datasets)
     timer = Timer(["1", "2", "3", "4"])
 
-    for n_train in range(0, 40):
-        print("!!! Train VAD1 n°{} with Batch size 10000 !!!".format(n_train))
-        VAD1.train(n_iteration=6, batch_size=10000)
-        timer.storeTime("1")
-        print("!!! Train VAD2 n°{} with Batch size 10000 !!!".format(n_train))
-        VAD2.train(n_iteration=10, batch_size=10000)
-        timer.storeTime("2")
+    for n_train in range(0, 90):
+        # print("!!! Train VAD1 n°{} with Batch size 10000 !!!".format(n_train))
+        # VAD1.train(n_iteration=6, batch_size=10000)
+        # timer.storeTime("1")
+        # print("!!! Train VAD2 n°{} with Batch size 10000 !!!".format(n_train))
+        # VAD2.train(n_iteration=10, batch_size=10000)
+        # timer.storeTime("2")
         print("!!! Train VAD3 n°{} with Batch size 10000 !!!".format(n_train))
-        VAD3.train(n_iteration=4, batch_size=10000)
+        VAD3.train(n_iteration=12, batch_size=10000)
+        print(VAD3.scores[-7:])
         timer.storeTime("3")
-        print("!!! Train VAD4 n°{} with Batch size 10000 !!!".format(n_train))
-        VAD4.train(n_iteration=22, batch_size=10000)
-        timer.storeTime("4")
+        # print("!!! Train VAD4 n°{} with Batch size 10000 !!!".format(n_train))
+        # VAD4.train(n_iteration=22, batch_size=10000)
+        # timer.storeTime("4")
 
 
     print("Results are:")
-    plt1, = plt.plot(VAD1.scores, label="VAD1")
-    plt2, = plt.plot(VAD2.scores, label="VAD2")
+    # plt1, = plt.plot(VAD1.scores, label="VAD1")
+    # plt2, = plt.plot(VAD2.scores, label="VAD2")
     plt3, = plt.plot(VAD3.scores, label="VAD3")
-    plt4, = plt.plot(VAD4.scores, label="VAD4")
-    plt.legend([plt1, plt2, plt3, plt4], ['VAD1', 'VAD2', 'VAD3', 'VAD4'])
-    plt.show()
-    print("VAD1: scores are {}".format(VAD1.scores))
-    print("VAD2: scores are {}".format(VAD2.scores))
+    # plt4, = plt.plot(VAD4.scores, label="VAD4")
+    plt.legend([ plt3 ], ['VAD3'])
+    # print("VAD1: scores are {}".format(VAD1.scores))
+    # print("VAD2: scores are {}".format(VAD2.scores))
     print("VAD3: scores are {}".format(VAD3.scores))
-    print("VAD4: scores are {}".format(VAD4.scores))
+    #print("VAD4: scores are {}".format(VAD4.scores))
     timer.showResults()
-    VAD1.saveModel()
-    VAD2.saveModel()
+    # VAD1.saveModel()
+    # VAD2.saveModel()
     VAD3.saveModel()
-    VAD4.saveModel()
+    # VAD4.saveModel()
+    plt.show()
 
 
-createModelOnCorpus()
+
+#createModelOnCorpus()

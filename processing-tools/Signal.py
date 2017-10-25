@@ -1,12 +1,13 @@
 import numpy as np
 from scipy import signal as scipySignal
 import python_speech_features
+import matplotlib.pyplot as plt
 from Timer import Timer
 SAMPLE_FREQ_CONST = 16000
 timer = Timer(["resample", "feat"])
 
 class Signal:
-    def __init__(self, np_array_of_values, sample_freq, ms_per_frame=25):
+    def __init__(self, np_array_of_values, sample_freq, ms_per_frame=25, filename="unknown"):
         is_np_array = isinstance(np_array_of_values, np.ndarray)
         assert(is_np_array and sample_freq > 0 and isinstance(sample_freq, int))
         self.signal = resample(np_array_of_values, initial_freq=sample_freq, new_freq=SAMPLE_FREQ_CONST)
@@ -18,7 +19,8 @@ class Signal:
         #self.framed_signal = self.splitInFrames()
         self.feature_vectors = signalToFeatureVector(self.signal, SAMPLE_FREQ_CONST, ms_per_frame)
         timer.storeTime("feat")
-        timer.showResults()
+        self.filename = filename
+        #timer.showResults()
 
 
     def splitInFrames(self):
@@ -28,6 +30,12 @@ class Signal:
 
     def getDuration(self):
         return len(self.signal) / self.sample_freq
+
+    def plot(self, superimpose=False):
+        if not superimpose:
+            plt.plot(np.linspace(0, self.getDuration(), num=self.signal.shape[0]), self.signal)
+        else:
+            return (np.linspace(0, self.getDuration(), num=self.signal.shape[0]), self.signal)
 
 
 def signalToFeatureVector(signal, sample_rate, ms_per_frame):

@@ -19,9 +19,6 @@ class Corpus:
 
     def mergeWith(self, corpusList):
         corpusList.append(self)
-        for corpus in corpusList:
-            print(corpus)
-        #print([(corpus.signals.shape, corpus.frames.shape) for corpus in corpusList])
         self.signals = np.concatenate( [corpus.signals for corpus in corpusList])
         self.frames = np.concatenate( [corpus.frames for corpus in corpusList])
         return self
